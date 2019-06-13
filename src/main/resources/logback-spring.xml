@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <springProperty scope="context" name="logLevel" source="log.level"/>
+    <springProperty scope="context" name="logPath" source="log.path"/>
+
+    <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <springProfile name="prod">
+        <property name="logTrcPath" value="${logPath}/trc/zxjfpay" />
+        <property name="logViewTrcPath" value="${logPath}/view/zxjfpay" />
+        <property name="logNotifyPath" value="${logPath}/trc/notify/notify" />
+        <property name="logTrcTranPath" value="${logPath}/trc/transaction/transaction" />
+
+        <appender name="FILE-TRC" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${logTrcPath}.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <!--日志文件输出的文件名-->
+                <FileNamePattern>${logTrcPath}-%d{yyyy-MM-dd}.%i.log</FileNamePattern>
+                <!--日志文件保留天数-->
+                <maxFileSize>10MB</maxFileSize>
+                <maxHistory>30</maxHistory>
+                <totalSizeCap>30GB</totalSizeCap>
+            </rollingPolicy>
+            <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+
+            </encoder>
+        </appender>
+        <appender name="FILE-JOB" class="ch.qos.logback.classic.sift.SiftingAppender">
+            <discriminator class="LoggerNameBasedDiscriminator" />
+            <sift>
+                <property name="logJobPath" value="${logPath}/job/${LOGGERNAME}" />
+                <file>${logJobPath}.log</file>
+                <appender name="FILE-${LOGGERNAME}" class="ch.qos.logback.core.rolling.RollingFileAppender">
+                    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+                        <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+                    </encoder>
+                    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                        <!--日志文件输出的文件名-->
+                        <FileNamePattern>${logJobPath}-%d{yyyy-MM-dd}.%i.log</FileNamePattern>
+                        <!--日志文件保留天数-->
+                        <maxFileSize>10MB</maxFileSize>
+                        <maxHistory>30</maxHistory>
+                        <totalSizeCap>30GB</totalSizeCap>
+                    </rollingPolicy>
+                </appender>
+            </sift>
+        </appender>
+        <appender name="FILE_VIEW_TRC" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${logViewTrcPath}.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <!--日志文件输出的文件名-->
+                <FileNamePattern>${logViewTrcPath}-%d{yyyy-MM-dd}.%i.log</FileNamePattern>
+                <!--日志文件保留天数-->
+                <maxFileSize>10MB</maxFileSize>
+                <maxHistory>30</maxHistory>
+                <totalSizeCap>30GB</totalSizeCap>
+            </rollingPolicy>
+            <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+
+            </encoder>
+        </appender>
+        <appender name="FILE-NOTIFY" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${logNotifyPath}.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <!--日志文件输出的文件名-->
+                <FileNamePattern>${logNotifyPath}-%d{yyyy-MM-dd}.%i.log</FileNamePattern>
+                <!--日志文件保留天数-->
+                <maxFileSize>10MB</maxFileSize>
+                <maxHistory>30</maxHistory>
+                <totalSizeCap>30GB</totalSizeCap>
+            </rollingPolicy>
+            <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+
+            </encoder>
+        </appender>
+        <appender name="FILE-TRAN" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${logTrcTranPath}.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <!--日志文件输出的文件名-->
+                <FileNamePattern>${logTrcTranPath}-%d{yyyy-MM-dd}.%i.log</FileNamePattern>
+                <!--日志文件保留天数-->
+                <maxFileSize>10MB</maxFileSize>
+                <maxHistory>30</maxHistory>
+                <totalSizeCap>30GB</totalSizeCap>
+            </rollingPolicy>
+            <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+
+            </encoder>
+        </appender>
+        <appender name="asyncJobFileAppender" class="ch.qos.logback.classic.AsyncAppender">
+            <discardingThreshold>0</discardingThreshold>
+            <queueSize>500</queueSize>
+            <appender-ref ref="FILE-JOB"/>
+        </appender>
+        <logger name="com.covsen.zxjfpay.schdjob" level="${logLevel}" additivity="false">
+            <appender-ref ref="asyncJobFileAppender" />
+        </logger>
+        <appender name="asyncFileAppender" class="ch.qos.logback.classic.AsyncAppender">
+            <discardingThreshold>0</discardingThreshold>
+            <queueSize>500</queueSize>
+            <appender-ref ref="FILE-TRC"/>
+        </appender>
+
+        <logger name="com.covsen.zxjfpay.controller" level="${logLevel}" additivity="false">
+            <appender-ref ref="FILE_VIEW_TRC" />
+        </logger>
+        <logger name="com.covsen.zxjfpay.notify" level="${logLevel}" additivity="false">
+            <appender-ref ref="FILE-NOTIFY" />
+        </logger>
+        <logger name="com.covsen.zxjfpay.corgpay" level="${logLevel}" additivity="false">
+            <appender-ref ref="FILE-TRAN" />
+        </logger>
+        <root level="${logLevel}">
+            <appender-ref ref="asyncFileAppender"/>
+        </root>
+
+        <!--<logger name="com.covsen.zxjfpay.mapper" level="DEBUG">-->
+            <!--<appender-ref ref="asyncFileAppender" />-->
+        <!--</logger>-->
+    </springProfile>
+
+    <springProfile name="dev">
+        <root level="INFO">
+            <appender-ref ref="consoleAppender" />
+        </root>
+        <logger name="com.covsen.zxjfpay.mapper" level="INFO">
+            <appender-ref ref="consoleAppender"/>
+        </logger>
+    </springProfile>
+
+    <springProfile name="test">
+        <root level="INFO">
+            <appender-ref ref="consoleAppender" />
+        </root>
+        <logger name="com.covsen.zxjfpay.mapper" level="DEBUG">
+            <appender-ref ref="consoleAppender"/>
+        </logger>
+    </springProfile>
+</configuration>
